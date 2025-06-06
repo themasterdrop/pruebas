@@ -5,7 +5,11 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 
 # Cargar los datos
-df = pd.read_csv('datosgit.csv')
+
+file_id = "1PWTw-akWr59Gu7MoHra5WXMKwllxK9bp"
+url = f"https://drive.google.com/uc?export=download&id={file_id}"
+
+df = pd.read_csv(url)
 
 # Inicializar la app
 app = dash.Dash(__name__)
