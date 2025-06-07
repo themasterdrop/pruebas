@@ -15,14 +15,38 @@ df = pd.read_csv(url)
 app = dash.Dash(__name__)
 server = app.server
 
+def clasificar_rango(dias):
+    if dias < 10:
+        return "0-9"
+    elif dias < 20:
+        return "10-19"
+    elif dias < 30:
+        return "20-29"
+    elif dias < 40:
+        return "30-39"
+    elif dias < 50:
+        return "40-49"
+    elif dias < 60:
+        return "50-59"
+    elif dias < 70:
+        return "60-69"
+    elif dias < 80:
+        return "70-79"
+    elif dias < 90:
+        return "80-89"    
+
+df['RANGO_DIAS'] = df['DIFERENCIA_DIAS'].apply(clasificar_rango)
+
+
+
 app.layout = html.Div([
     html.H1("Histograma de Tiempo de espera en días y Distribución de Especialidades Médicas en cada rango"),
     dcc.Graph(id='histogram', figure=px.histogram(
         df,
-        x='DIFERENCIA_DIAS',
-        nbins=30,
-        title='Distribución de Diferencia de Días',
-        labels={'DIFERENCIA_DIAS': 'Diferencia en Días'},
+        x='RANGO_DIAS',
+        category_orders={'RANGO_DIAS': ["0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89"]},
+        title='Distribución de la Cantidad de Pacientes según su Tiempo de Espera',
+        labels={'RANGO_DIAS': 'Rango de Días'},
         template='plotly_white'
     )),
     dcc.Graph(id='pie-chart', figure=px.pie(
@@ -38,10 +62,10 @@ def update_pie_chart(clickData):
     if clickData is None:
         return px.pie(names=[], values=[], title="Seleccione una barra en el histograma", height = 500)
 
-    selected_bin = clickData['points'][0]['x']
-    bin_start = selected_bin - 0.5
-    bin_end = selected_bin + 0.5
-    filtered_df = df[(df['DIFERENCIA_DIAS'] >= bin_start) & (df['DIFERENCIA_DIAS'] < bin_end)]
+    
+    selected_range = clickData['points'][0]['x']
+    filtered_df = df[df['RANGO_DIAS'] == selected_range]
+
     
     top_especialidades = (
         filtered_df['ESPECIALIDAD']
@@ -59,7 +83,7 @@ def update_pie_chart(clickData):
         grouped,
         names='ESPECIALIDAD',
         values = "CUENTA",
-        title=f"Top 5 Especialidades para un tiempo de espera de {bin_start} a {bin_end} días",
+        title=f"Top 5 Especialidades para un tiempo de espera de {selected_range} días",
         height=600
      )
 
