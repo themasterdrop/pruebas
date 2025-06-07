@@ -16,7 +16,7 @@ app = dash.Dash(__name__)
 server = app.server
 
 app.layout = html.Div([
-    html.H1("Histograma de Diferencia de Días y Distribución de Especialidades"),
+    html.H1("Histograma de Tiempo de espera en días y Distribución de Especialidades Médicas en cada rango"),
     dcc.Graph(id='histogram', figure=px.histogram(
         df,
         x='DIFERENCIA_DIAS',
@@ -36,17 +36,41 @@ app.layout = html.Div([
 )
 def update_pie_chart(clickData):
     if clickData is None:
-        return px.pie(names=[], values=[], title="Seleccione una barra en el histograma")
+        return px.pie(names=[], values=[], title="Seleccione una barra en el histograma", height = 500)
 
     selected_bin = clickData['points'][0]['x']
     bin_start = selected_bin - 0.5
     bin_end = selected_bin + 0.5
     filtered_df = df[(df['DIFERENCIA_DIAS'] >= bin_start) & (df['DIFERENCIA_DIAS'] < bin_end)]
 
+    
+    
+    top_especialidades = (
+        filtered_df['ESPECIALIDAD']
+        .value_counts()
+        .nlargest(5)
+    )
+    
+    
+    filtered_df['ESPECIALIDAD_AGRUPADA'] = filtered_df['ESPECIALIDAD'].apply(
+        lambda x: x if x in top_especialidades.index else 'Otras'
+    )
+    
+    # Agrupar nuevamente
+    grouped = filtered_df['ESPECIALIDAD_AGRUPADA'].value_counts().reset_index()
+    grouped.columns = ['ESPECIALIDAD', 'CUENTA']
+
+    
+
+
+    
+
     return px.pie(
-        filtered_df,
+        grouped,
         names='ESPECIALIDAD',
-        title=f"Distribución de Especialidades para {selected_bin} días"
+        values = "Cuenta",
+        title=f"Top 5 Especialidades para un tiempo de espera de {bin_start} a {bin_end} días",
+        height=600
      )
 
 if __name__ == '__main__':
