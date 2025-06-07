@@ -42,33 +42,23 @@ def update_pie_chart(clickData):
     bin_start = selected_bin - 0.5
     bin_end = selected_bin + 0.5
     filtered_df = df[(df['DIFERENCIA_DIAS'] >= bin_start) & (df['DIFERENCIA_DIAS'] < bin_end)]
-
     
-    
-    top_especialidades = (
-        filtered_df['ESPECIALIDAD']
-        .value_counts()
-        .nlargest(5)
-    )
-    
-    
-    filtered_df['ESPECIALIDAD_AGRUPADA'] = filtered_df['ESPECIALIDAD'].apply(
-        lambda x: x if x in top_especialidades.index else 'Otras'
+    top_especialidades = (
+        filtered_df['ESPECIALIDAD']
+        .value_counts()
+        .nlargest(5)
     )
     
-    # Agrupar nuevamente
-    grouped = filtered_df['ESPECIALIDAD_AGRUPADA'].value_counts().reset_index()
-    grouped.columns = ['ESPECIALIDAD', 'CUENTA']
-
+    filtered_df['ESPECIALIDAD_AGRUPADA'] = filtered_df['ESPECIALIDAD'].apply(
+        lambda x: x if x in top_especialidades.index else 'Otras'
+    )
     
-
-
-    
-
+    grouped = filtered_df['ESPECIALIDAD_AGRUPADA'].value_counts().reset_index()
+    grouped.columns = ['ESPECIALIDAD', 'CUENTA']
     return px.pie(
         grouped,
         names='ESPECIALIDAD',
-        values = "Cuenta",
+        values = "CUENTA",
         title=f"Top 5 Especialidades para un tiempo de espera de {bin_start} a {bin_end} días",
         height=600
      )
